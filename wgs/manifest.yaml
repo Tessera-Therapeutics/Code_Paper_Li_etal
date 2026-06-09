@@ -1,0 +1,11 @@
+# Manifest for RW-DA-004
+project_code: RW-DA-004
+analysis_date: "2026-03-31"
+status: in_progress
+data_sources: []
+artifacts: []
+environment:
+  container_tag: ""
+execution:
+  run_date: ""
+  commit: ""

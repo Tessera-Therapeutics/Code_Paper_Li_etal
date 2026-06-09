@@ -1,0 +1,4 @@
+dependencies:
+  - boto3
+  - pysam
+  - pandas
