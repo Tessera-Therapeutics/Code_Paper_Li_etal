@@ -49,12 +49,4 @@ GC content and N-base fraction per 500 kb bin were computed directly from the GR
 3. **Depth outliers**: bins with raw depth above the per-sample 99th percentile, which correspond to segmental duplications and other high-copy loci where multi-mapping reads produce artefactually elevated coverage.
 
 After filtering, sample-specific GC bias was corrected using a piecewise-median approach: bins were stratified into 50 equal-width GC bins, the median depth per GC bin was computed, and each bin's depth was divided by the median depth of its GC stratum and rescaled to the genome-wide median. For each clone, log2 ratios of GC-corrected clone depth relative to GC-corrected C8 control depth were computed per 500 kb bin. Each clone's log2-ratio distribution was then median-centred to remove residual library-level offsets. Reference lines at log2 ratio 0 (diploid) and ±1 (2-fold change) are indicated on the genome-wide plots. Analysis was performed in Python using pandas, numpy, scipy, and matplotlib.
-
----
-
-## Notes (not for paper)
-
-- B1 and B2 CRAMs were processed prior to the automated pipeline; their BAMs were archived to S3 separately (`wgs_bam_files/`).
-- B3–B6 were processed by the automated pipeline (`run_dragen_pipeline.sh`) which downloads CRAM, sorts, indexes, runs DRAGEN SV, uploads BAM + DRAGEN output to S3, then removes local files.
-- mosdepth was run on a separate EC2 instance with sufficient disk space (`run_mosdepth.sh`); results uploaded to `s3://compbio-discovery-shared/nonLTR/wgs/mosdepth_500kb/`.
-- samtools version: confirm on the DRAGEN instance with `samtools --version`.
+amtools --version`.
