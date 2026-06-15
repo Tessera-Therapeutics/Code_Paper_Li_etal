@@ -1,21 +1,26 @@
 #!/bin/bash
-# RW-DA-004 — mosdepth coverage pipeline for CNV analysis
-# Runs mosdepth (500kb bins) on C8 control + all 6 B clones.
-# C8 BAM must be present locally. B-sample BAMs are downloaded from S3 one at a time.
-# Run on the mosdepth EC2 instance.
+# Mosdepth coverage pipeline for CNV analysis
+# Runs mosdepth (500kb bins) on control + all samples.
+# Li et al. 2026 - Gene Writing with engineered retrotransposons
 
 set -euo pipefail
 
+# Load configuration
+if [ -f config.local.sh ]; then
+    source config.local.sh
+elif [ -f ../config.local.sh ]; then
+    source ../config.local.sh
+else
+    echo "Warning: config.local.sh not found, using defaults from config.example.sh"
+    source config.example.sh
+fi
+
 # ── Configuration ────────────────────────────────────────────────────────────
-DATA_DIR="/home/ec2-user/wgs/data"         # adjust to local data dir
 OUT_DIR="${DATA_DIR}/mosdepth"
 BIN_SIZE=500000
-THREADS=8
-S3_BAMS_B="s3://compbio-discovery-shared/nonLTR/wgs/wgs_sv"
-S3_BAM_B2="s3://compbio-discovery-shared/nonLTR/wgs/wgs_bam_files"
-S3_RESULTS="s3://compbio-discovery-shared/nonLTR/wgs/mosdepth_500kb"
+S3_BAMS="${S3_INPUT_BUCKET}"
 
-CONTROL_BAM="${DATA_DIR}/GM25256-C8.sorted.bam"
+CONTROL_BAM="${CONTROL_BAM}"
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
@@ -74,12 +79,12 @@ run_mosdepth "GM25256-C8" "${CONTROL_BAM}"
 
 # ── B samples from S3 ────────────────────────────────────────────────────────
 declare -A S3_BAM_PATHS=(
-    [GM25256-B1]="${S3_BAMS_B}/GM25256-B1/B1.sorted.bam"
-    [GM25256-B2]="${S3_BAM_B2}/GM25256-B2.sorted.bam"
-    [GM25256-B3]="${S3_BAMS_B}/GM25256-B3/B3.sorted.bam"
-    [GM25256-B4]="${S3_BAMS_B}/GM25256-B4/B4.sorted.bam"
-    [GM25256-B5]="${S3_BAMS_B}/GM25256-B5/B5.sorted.bam"
-    [GM25256-B6]="${S3_BAMS_B}/GM25256-B6/B6.sorted.bam"
+    [GM25256-B1]="${S3_BAMS}/GM25256-B1/B1.sorted.bam"
+    [GM25256-B2]="${S3_BAMS}/GM25256-B2.sorted.bam"
+    [GM25256-B3]="${S3_BAMS}/GM25256-B3/B3.sorted.bam"
+    [GM25256-B4]="${S3_BAMS}/GM25256-B4/B4.sorted.bam"
+    [GM25256-B5]="${S3_BAMS}/GM25256-B5/B5.sorted.bam"
+    [GM25256-B6]="${S3_BAMS}/GM25256-B6/B6.sorted.bam"
 )
 
 SAMPLES=(GM25256-B1 GM25256-B2 GM25256-B3 GM25256-B4 GM25256-B5 GM25256-B6)

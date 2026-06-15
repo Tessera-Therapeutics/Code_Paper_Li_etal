@@ -1340,8 +1340,8 @@ generateListOfPairs <- function(elements) {
 #' @docType methods
 #' @aliases loadOncoTSgenes
 #'
-#' @param onco_db_file Default = "/Users/calabria.andrea/Dropbox (FONDAZIONE TELETHON)/Project Tumour Development/source/publicdb/201806_uniprot-Proto-oncogene.tsv", 
-#' @param tumsup_db_file Default = "/Users/calabria.andrea/Dropbox (FONDAZIONE TELETHON)/Project Tumour Development/source/publicdb/201806_uniprot-Tumor-suppressor.tsv",
+#' @param onco_db_file Path to UniProt oncogene database file (from config)
+#' @param tumsup_db_file Path to UniProt tumor suppressor database file (from config)
 #' @param species Default = "all" # alternatives: human, mouse
 #' 
 #'
@@ -1351,8 +1351,8 @@ generateListOfPairs <- function(elements) {
 #' 
 ###############################################################
 
-loadOncoTSgenes <- function(onco_db_file = "/Users/calabria.andrea/Dropbox (HSR Global)/TIGET/Workbench/isatk/script/R/publicdb/201806_uniprot-Proto-oncogene.tsv", 
-                            tumsup_db_file = "/Users/calabria.andrea/Dropbox (HSR Global)/TIGET/Workbench/isatk/script/R/publicdb/201806_uniprot-Tumor-suppressor.tsv",
+loadOncoTSgenes <- function(onco_db_file = UNIPROT_ONCOGENE,
+                            tumsup_db_file = UNIPROT_TUMOR_SUPPRESSOR,
                             species = "all" # alternatives: human, mouse
 ) {
   require(Hmisc)
@@ -1529,7 +1529,7 @@ loadOncoTSgenes <- function(onco_db_file = "/Users/calabria.andrea/Dropbox (HSR 
 #' @docType methods
 #' @aliases loadOncoTSgenes_fromCancerMine
 #'
-#' @param cancermine_collated_file Default = "/Users/calabria.andrea/Dropbox (FONDAZIONE TELETHON)/Project Tumour Development/source/publicdb/201806_uniprot-Proto-oncogene.tsv", 
+#' @param cancermine_collated_file Path to CancerMine database file (from config) 
 #'
 #' @return dataframe
 #' @usage todo
@@ -1537,7 +1537,7 @@ loadOncoTSgenes <- function(onco_db_file = "/Users/calabria.andrea/Dropbox (HSR 
 #' 
 ###############################################################
 
-loadOncoTSgenes_fromCancerMine <- function(cancermine_collated_file = "/Users/calabria.andrea/Dropbox (HSR Global)/TIGET/Workbench/isatk/script/R/publicdb/cancermine/cancermine_collated.201910.tsv") {
+loadOncoTSgenes_fromCancerMine <- function(cancermine_collated_file = CANCERMINE_DB) {
   require(Hmisc)
   error <- ""
   ok_checks_passed <- TRUE

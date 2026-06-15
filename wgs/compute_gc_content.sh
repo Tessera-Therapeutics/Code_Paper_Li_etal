@@ -1,14 +1,24 @@
 #!/bin/bash
 # Compute GC content per 500kb bin from hg38 reference FASTA.
 # Uses only samtools + python3 (no bedtools needed).
-# Run on the DRAGEN instance where the reference FASTA lives.
+# Li et al. 2026 - Gene Writing with engineered retrotransposons
 
 set -euo pipefail
 
-REF="/home/ec2-user/wgs/data/ref/Homo_sapiens_assembly38.fasta"
+# Load configuration
+if [ -f config.local.sh ]; then
+    source config.local.sh
+elif [ -f ../config.local.sh ]; then
+    source ../config.local.sh
+else
+    echo "Warning: config.local.sh not found, using defaults from config.example.sh"
+    source config.example.sh
+fi
+
+REF="${REF_FASTA}"
 BIN_SIZE=500000
 GC_OUT="/tmp/hg38_500kb_gc.tsv"
-S3_OUT="s3://compbio-discovery-shared/nonLTR/wgs/mosdepth_500kb/hg38_500kb_gc.tsv"
+S3_OUT="${S3_RESULTS}/hg38_500kb_gc.tsv"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 

@@ -7,13 +7,14 @@ set -euo pipefail
 TMP=$(mktemp -d)
 trap "rm -rf ${TMP}" EXIT
 
+# UPDATE: Set to your S3 BAM locations
 declare -A BAMS=(
-    [B1]="s3://compbio-discovery-shared/nonLTR/wgs/wgs_sv/GM25256-B1/B1.sorted.bam"
-    [B2]="s3://compbio-discovery-shared/nonLTR/wgs/wgs_bam_files/GM25256-B2.sorted.bam"
-    [B3]="s3://compbio-discovery-shared/nonLTR/wgs/wgs_sv/GM25256-B3/B3.sorted.bam"
-    [B4]="s3://compbio-discovery-shared/nonLTR/wgs/wgs_sv/GM25256-B4/B4.sorted.bam"
-    [B5]="s3://compbio-discovery-shared/nonLTR/wgs/wgs_sv/GM25256-B5/B5.sorted.bam"
-    [B6]="s3://compbio-discovery-shared/nonLTR/wgs/wgs_sv/GM25256-B6/B6.sorted.bam"
+    [B1]="s3://YOUR_BUCKET/wgs/GM25256-B1/B1.sorted.bam"
+    [B2]="s3://YOUR_BUCKET/wgs/GM25256-B2/B2.sorted.bam"
+    [B3]="s3://YOUR_BUCKET/wgs/GM25256-B3/B3.sorted.bam"
+    [B4]="s3://YOUR_BUCKET/wgs/GM25256-B4/B4.sorted.bam"
+    [B5]="s3://YOUR_BUCKET/wgs/GM25256-B5/B5.sorted.bam"
+    [B6]="s3://YOUR_BUCKET/wgs/GM25256-B6/B6.sorted.bam"
 )
 
 for S in B1 B2 B3 B4 B5 B6; do

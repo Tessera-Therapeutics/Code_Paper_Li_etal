@@ -42,9 +42,9 @@ library(wesanderson)
 ##### =============================================================== #####
 ##### ------------- Input and global functions ---------------------- #####
 ##### =============================================================== #####
-setwd("/Users/andreacalabria/Library/CloudStorage/OneDrive-VL58/Project UniSeq/")
-source("/Users/andreacalabria/Library/CloudStorage/OneDrive-VL58/Utils/GitHub/rna-writer_prototype/R/functions/uniseq_utils.R")
-source("/Users/andreacalabria/Library/CloudStorage/OneDrive-VL58/Utils/GitHub/rna-writer_prototype/R/functions/_init_uniseq_analysis.R")
+# Load utility functions and initialization
+source("../distalseq/uniseq_utils.R")
+source("../distalseq/_init_uniseq_analysis.R")
 
 source_folder <- "analyses/260223/"
 dir.create(file.path(source_folder), showWarnings = FALSE)
@@ -2343,9 +2343,10 @@ for (vec in setdiff(colnames(IS_gdf), uni_id_cols)) {
   vec_IS_mat$chr <- gsub("chr", "", vec_IS_mat$chr)
   names(vec_IS_mat) <- c("chr", "integration_locus", "strand", "GeneName", "GeneStrand", vec)
   # compute CIS
-  vec_cis <- CISGrubbs(df = vec_IS_mat, 
-                       annotation_cols = c("chr", "integration_locus", "strand", "GeneName", "GeneStrand", "GeneDistance"), 
-                       genomic_annotation_genebased_file = "/Users/andreacalabria/Library/CloudStorage/OneDrive-VL58/Utils/GitHub/rna-writer_prototype/metadata/hg38.refGene.oracle.tsv.gz")
+  # NOTE: Provide path to gene-based annotation file if available
+  vec_cis <- CISGrubbs(df = vec_IS_mat,
+                       annotation_cols = c("chr", "integration_locus", "strand", "GeneName", "GeneStrand", "GeneDistance"),
+                       genomic_annotation_genebased_file = NULL)
   vec_cis$Assay <- "Uniseq"
   vec_cis$Vector <- vec
   write.table(x = vec_cis, 

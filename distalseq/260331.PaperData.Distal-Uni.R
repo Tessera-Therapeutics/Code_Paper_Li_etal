@@ -38,12 +38,12 @@ library(ggExtra)
 ##### =============================================================== #####
 ##### ------------- Input and global functions ---------------------- #####
 ##### =============================================================== #####
-setwd("Project DISTALseq")
-source("Utils/GitHub/rna-writer_prototype/R/functions/distalseq_utils.R")
-source("Utils/GitHub/rna-writer_prototype/R/functions/_init_distalseq_analysis.R")
-source("Utils/GitHub/rna-writer_prototype/R/functions/isa_utils.R")
-source("Utils/GitHub/rna-writer_prototype/R/functions/uniseq_utils.R")
-source("Utils/GitHub/rna-writer_prototype/R/functions/_init_uniseq_analysis.R")
+# Load utility functions
+source("distalseq_utils.R")
+source("_init_distalseq_analysis.R")
+source("isa_utils.R")
+source("uniseq_utils.R")
+source("_init_uniseq_analysis.R")
 
 source_folder <- "analyses/260331_Paper_DistalUni/"
 dir.create(file.path(source_folder), showWarnings = FALSE)

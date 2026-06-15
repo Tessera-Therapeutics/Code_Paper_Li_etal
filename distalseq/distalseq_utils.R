@@ -410,8 +410,7 @@ getAlmInfo <- function(this_is) {
 #' @note : 
 #' @todo : check all required cols -> or generalize as input par
 ###############################################################
-parseDistalseqPipeTSVOutput <- function(filename, 
-                                        # master_metadata_file = "/Users/andreacalabria/Library/CloudStorage/OneDrive-VL58/Utils/GitHub/rna-writer_prototype/results/2023.MasterFileRun.DISTALseq.xlsx",
+parseDistalseqPipeTSVOutput <- function(filename,
                                         master_df,
                                         required_metadata_cols = c("SampleID", "SampleName", "Replica", "Vector", "PoolID", "GroupName", "Transgene", "SampleType", "Separator", "Promoter_start", "Promoter_end", "pA_start", "pA_end", "Functional_min", "Functional_max", "VectorOrientation", "MinReadLen"),
                                         import_only_proper = TRUE,
@@ -775,8 +774,7 @@ parseDistalseqPipeTSVOutput <- function(filename,
 #' @note : 
 #' @todo : check all required cols -> or generalize as input par
 ###############################################################
-parseDistalseqPipeTSVOutput_VectorOnly <- function(filename, 
-                                        # master_metadata_file = "/Users/andreacalabria/Library/CloudStorage/OneDrive-VL58/Utils/GitHub/rna-writer_prototype/results/2023.MasterFileRun.DISTALseq.xlsx",
+parseDistalseqPipeTSVOutput_VectorOnly <- function(filename,
                                         master_df,
                                         required_metadata_cols = c("SampleID", "SampleName", "Replica", "Vector", "PoolID", "GroupName", "Transgene", "SampleType", "Separator", "Promoter_start", "Promoter_end", "pA_start", "pA_end", "Functional_min", "Functional_max", "VectorOrientation", "MinReadLen"),
                                         # import_only_proper = TRUE,

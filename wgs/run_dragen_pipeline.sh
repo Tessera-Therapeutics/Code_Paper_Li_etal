@@ -1,37 +1,54 @@
 #!/bin/bash
-# RW-DA-004 — DRAGEN somatic SV + CNV pipeline
-# Processes all 6 clones (B1–B6) vs C8 sequentially.
-# Run on the DRAGEN EC2 instance.
+# DRAGEN somatic SV + CNV pipeline
+# Processes edited clones vs control for structural variant calling
+# Run on a DRAGEN-enabled system (e.g., AWS F1 instance)
 
 set -euo pipefail
 trap '' HUP  # ignore hangup — keeps running if SSH session drops
 
-# ── Configuration ────────────────────────────────────────────────────────────
-DATA_DIR="/home/ec2-user/wgs/data"
-REF_FASTA="${DATA_DIR}/ref/Homo_sapiens_assembly38.fasta"
-REF_DIR="/staging/ref/hg38"
-THREADS=8
-S3_RESULTS="s3://compbio-discovery-shared/nonLTR/wgs/wgs_sv"
+# ==============================================================================
+# LOAD CONFIGURATION
+# ==============================================================================
 
-# C8 control BAM — adjust path if C8 is in a subdirectory
-CONTROL_BAM="${DATA_DIR}/GM25256-C8.sorted.bam"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# ── Sample definitions ───────────────────────────────────────────────────────
-declare -A S3_PATHS=(
-    [GM25256-B1]="s3://fvl58-compbio/archive/baltshuler/baltshuler-wgs-01/scratch/from-s3/rt-platform/rt-wgs/2021-08_rt-wgs_EXP21001214/GM25256-B1/GM25256-B1.name-sorted.cram"
-    [GM25256-B2]="s3://fvl58-compbio/analyses/baltshuler/wgs-ec2-storage-to-sort/wgs-02/from-s3/2021-08_rt-wgs_EXP21001214/GM25256-B2/GM25256-B2.name-sorted.cram"
-    [GM25256-B3]="s3://fvl58-compbio/analyses/baltshuler/wgs-ec2-storage-to-sort/wgs-03/from-s3/rt-platform/rt-wgs/2021-08_rt-wgs_EXP21001214/GM25256-B3/GM25256-B3.name-sorted.cram"
-    [GM25256-B4]="s3://fvl58-compbio/analyses/baltshuler/wgs-ec2-storage-to-sort/wgs-04/from-s3/rt-platform/rt-wgs/2021-08_rt-wgs_EXP21001214/GM25256-B4/GM25256-B4.name-sorted.cram"
-    [GM25256-B5]="s3://fvl58-compbio/analyses/baltshuler/wgs-ec2-storage-to-sort/wgs-05/from-s3/rt-platform/rt-wgs/2021-08_rt-wgs_EXP21001214/GM25256-B5/GM25256-B5.name-sorted.cram"
-    [GM25256-B6]="s3://fvl58-compbio/analyses/baltshuler/wgs-ec2-storage-to-sort/wgs-06/from-s3/rt-platform/rt-wgs/2021-08_rt-wgs_EXP21001214/GM25256-B6/GM25256-B6.name-sorted.cram"
-)
+if [ -f "${REPO_ROOT}/config.local.sh" ]; then
+    echo "[INFO] Loading config from config.local.sh"
+    source "${REPO_ROOT}/config.local.sh"
+elif [ -f "${REPO_ROOT}/config.example.sh" ]; then
+    echo "[WARN] config.local.sh not found, using config.example.sh"
+    echo "[WARN] Copy config.example.sh to config.local.sh and customize for your system"
+    source "${REPO_ROOT}/config.example.sh"
+else
+    echo "[ERROR] No configuration file found"
+    exit 1
+fi
 
-SAMPLES=(GM25256-B3 GM25256-B4 GM25256-B5 GM25256-B6)
-# B1 and B2 BAMs already in S3 — skipped
-# SAMPLES=(GM25256-B1 GM25256-B2 GM25256-B3 GM25256-B4 GM25256-B5 GM25256-B6)
+# ==============================================================================
+# VALIDATE CONFIGURATION
+# ==============================================================================
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
-log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
+if [ -z "${DATA_DIR}" ] || [ -z "${REF_FASTA}" ] || [ -z "${REF_DIR}" ]; then
+    echo "[ERROR] Required configuration variables not set"
+    echo "       Please set DATA_DIR, REF_FASTA, and REF_DIR in config.local.sh"
+    exit 1
+fi
+
+if [ -z "${S3_RESULTS}" ]; then
+    echo "[ERROR] S3_RESULTS not set in config.local.sh"
+    echo "       Set this to your S3 bucket for results, e.g.:"
+    echo "       S3_RESULTS=\"s3://your-bucket/wgs/results\""
+    exit 1
+fi
+
+# ==============================================================================
+# HELPER FUNCTIONS
+# ==============================================================================
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+}
 
 check_disk() {
     local avail_gb
@@ -43,45 +60,78 @@ check_disk() {
     log "Disk check OK: ${avail_gb}GB available"
 }
 
-# ── Pre-flight checks ────────────────────────────────────────────────────────
-log "=== RW-DA-004 DRAGEN pipeline ==="
+# ==============================================================================
+# PRE-FLIGHT CHECKS
+# ==============================================================================
+
+log "=== DRAGEN SV Calling Pipeline ==="
 log "Samples: ${SAMPLES[*]}"
 
+# Check control BAM exists
 if [[ ! -f "${CONTROL_BAM}" ]]; then
     log "ERROR: Control BAM not found at ${CONTROL_BAM}"
+    log "       Update CONTROL_BAM in config.local.sh"
     exit 1
 fi
+
+# Check or create index
 if [[ ! -f "${CONTROL_BAM}.bai" ]]; then
     log "Control BAM index missing — indexing now..."
     samtools index "${CONTROL_BAM}"
 fi
 log "Control BAM OK: ${CONTROL_BAM}"
 
-# ── Per-sample pipeline ──────────────────────────────────────────────────────
+# Check reference files
+if [[ ! -f "${REF_FASTA}" ]]; then
+    log "ERROR: Reference FASTA not found: ${REF_FASTA}"
+    log "       See metadata/README.md for download instructions"
+    exit 1
+fi
+
+# ==============================================================================
+# PER-SAMPLE PIPELINE
+# ==============================================================================
+
 for SAMPLE in "${SAMPLES[@]}"; do
     log "========================================"
     log "Processing: ${SAMPLE}"
     log "========================================"
 
     SAMPLE_DIR="${DATA_DIR}/${SAMPLE}"
-    CRAM="${SAMPLE_DIR}/${SAMPLE}.name-sorted.cram"
-    BAM="${SAMPLE_DIR}/${SAMPLE}.sorted.bam"
     DRAGEN_OUT="${SAMPLE_DIR}/dragen_sv_out"
-    PREFIX="${SAMPLE##GM25256-}_vs_C8"   # e.g. B1_vs_C8
+
+    # Clean sample name for output prefix (remove any prefix like "GM25256-")
+    PREFIX="${SAMPLE##*-}_vs_control"
 
     mkdir -p "${SAMPLE_DIR}" "${DRAGEN_OUT}"
 
-    # Step 1 — Download CRAM
+    # ── Step 1: Get CRAM/BAM ─────────────────────────────────────────────────
+
+    # Try to find local CRAM first
+    CRAM="${SAMPLE_DIR}/${SAMPLE}.name-sorted.cram"
+    BAM="${SAMPLE_DIR}/${SAMPLE}.sorted.bam"
+
     if [[ -f "${BAM}" && -f "${BAM}.bai" ]]; then
         log "BAM already exists and indexed — skipping download+sort: ${BAM}"
     else
         check_disk
 
-        log "Downloading CRAM from S3..."
-        aws s3 cp "${S3_PATHS[${SAMPLE}]}" "${CRAM}"
-        log "Download complete: ${CRAM}"
+        # Check if we have a local CRAM path defined
+        if [[ -v LOCAL_CRAM_PATHS[${SAMPLE}] ]]; then
+            log "Using local CRAM: ${LOCAL_CRAM_PATHS[${SAMPLE}]}"
+            CRAM="${LOCAL_CRAM_PATHS[${SAMPLE}]}"
+        # Check if we need to download from S3
+        elif [[ -v S3_PATHS[${SAMPLE}] ]]; then
+            log "Downloading CRAM from S3..."
+            aws s3 cp "${S3_PATHS[${SAMPLE}]}" "${CRAM}"
+            log "Download complete: ${CRAM}"
+        else
+            log "ERROR: No path defined for sample ${SAMPLE}"
+            log "       Update S3_PATHS or LOCAL_CRAM_PATHS in config.local.sh"
+            exit 1
+        fi
 
-        # Step 2 — Coordinate sort + convert to BAM
+        # ── Step 2: Sort and convert to BAM ──────────────────────────────────
         log "Sorting and converting to BAM..."
         samtools sort -@ "${THREADS}" \
             --reference "${REF_FASTA}" \
@@ -89,16 +139,20 @@ for SAMPLE in "${SAMPLES[@]}"; do
             -o "${BAM}" \
             "${CRAM}" \
             2>"${SAMPLE_DIR}/sort.log"
-        log "Sort complete. Removing CRAM..."
-        rm "${CRAM}"
 
-        # Step 3 — Index BAM
+        log "Sort complete. Removing CRAM..."
+        if [[ "${CRAM}" == "${SAMPLE_DIR}"* ]]; then
+            # Only remove if it's in our sample dir (not a local file elsewhere)
+            rm "${CRAM}"
+        fi
+
+        # ── Step 3: Index BAM ────────────────────────────────────────────────
         log "Indexing BAM..."
         samtools index "${BAM}"
         log "Index complete."
     fi
 
-    # Step 4 — DRAGEN somatic SV
+    # ── Step 4: Run DRAGEN somatic SV ────────────────────────────────────────
     if [[ -f "${DRAGEN_OUT}/${PREFIX}.sv.vcf.gz" ]]; then
         log "DRAGEN output already exists — skipping: ${DRAGEN_OUT}/${PREFIX}.sv.vcf.gz"
     else
@@ -115,22 +169,27 @@ for SAMPLE in "${SAMPLES[@]}"; do
         log "DRAGEN complete: ${SAMPLE}"
     fi
 
-    # Step 5 — Upload DRAGEN results to S3
-    log "Uploading DRAGEN results to S3..."
-    aws s3 cp "${DRAGEN_OUT}/" "${S3_RESULTS}/${SAMPLE}/" --recursive
-    log "Upload complete: ${S3_RESULTS}/${SAMPLE}/"
+    # ── Step 5: Upload results to S3 (if S3_RESULTS is set) ─────────────────
+    if [[ -n "${S3_RESULTS}" ]]; then
+        log "Uploading DRAGEN results to S3..."
+        aws s3 cp "${DRAGEN_OUT}/" "${S3_RESULTS}/${SAMPLE}/" --recursive
+        log "Upload complete: ${S3_RESULTS}/${SAMPLE}/"
 
-    # Step 6 — Upload BAM + index to S3 alongside DRAGEN output
-    log "Uploading BAM and index to S3..."
-    aws s3 cp "${BAM}"      "${S3_RESULTS}/${SAMPLE}/${SAMPLE##GM25256-}.sorted.bam"
-    aws s3 cp "${BAM}.bai"  "${S3_RESULTS}/${SAMPLE}/${SAMPLE##GM25256-}.sorted.bam.bai"
-    log "BAM upload complete."
+        # ── Step 6: Upload BAM + index ───────────────────────────────────────
+        log "Uploading BAM and index to S3..."
+        aws s3 cp "${BAM}"      "${S3_RESULTS}/${SAMPLE}/${SAMPLE}.sorted.bam"
+        aws s3 cp "${BAM}.bai"  "${S3_RESULTS}/${SAMPLE}/${SAMPLE}.sorted.bam.bai"
+        log "BAM upload complete."
+    else
+        log "S3_RESULTS not set — skipping upload"
+    fi
 
-    # Step 7 — Remove large local files to free disk space
-    log "Removing local BAM and DRAGEN output..."
-    rm -f "${BAM}" "${BAM}.bai"
-    rm -rf "${DRAGEN_OUT}"
-    log "Cleanup complete for ${SAMPLE}."
+    # ── Step 7: Cleanup (optional) ───────────────────────────────────────────
+    # Uncomment to remove large local files after upload
+    # log "Removing local BAM and DRAGEN output..."
+    # rm -f "${BAM}" "${BAM}.bai"
+    # rm -rf "${DRAGEN_OUT}"
+    # log "Cleanup complete for ${SAMPLE}."
 
     log "Done: ${SAMPLE}"
 done

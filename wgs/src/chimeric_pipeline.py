@@ -16,7 +16,7 @@ Example:
   python chimeric_pipeline.py \\
       --cram   GM25256-B6.name-sorted.cram \\
       --reference hg38.fasta \\
-      --s3-base s3://compbio-discovery-shared/nonLTR/wgs/rw-da-004/
+      --s3-base s3://YOUR_BUCKET/wgs/results/
 """
 
 import argparse

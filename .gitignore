@@ -1,0 +1,66 @@
+# Reference genome files (too large for git)
+*.fasta
+*.fasta.fai
+*.fai
+*.gtf.gz
+*.gtf.gz.tbi
+*.bed.gz
+*.bed.gz.tbi
+
+# R files
+.Rhistory
+.RData
+.Rproj.user
+*.Rproj
+renv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data files (large outputs)
+*.bam
+*.bam.bai
+*.cram
+*.cram.crai
+*.vcf.gz
+*.vcf.gz.tbi
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+*.log
+*~
+
+# Analysis outputs (keep these local, not in repo)
+results/
+analyses/
+output/
+*.RData
+*.rds
+
+# Local configuration (user-specific)
+config.local.R
+config.local.sh
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
