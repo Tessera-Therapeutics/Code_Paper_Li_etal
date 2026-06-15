@@ -69,7 +69,6 @@ Each directory contains analysis scripts used to generate results in the manuscr
 ## Data Availability
 
 - **Raw sequencing data**: NCBI BioProject [PRJNA1471271](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1471271)
-- **Processed integration sites**: [Zenodo DOI to be added]
 - **Reference genome**: hg38/GRCh38 - download from UCSC or Broad Institute (see [metadata/README.md](metadata/README.md))
 
 ## Citation
