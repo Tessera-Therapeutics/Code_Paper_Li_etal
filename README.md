@@ -8,13 +8,14 @@ Li et al., 2026
 
 ## Repository Contents
 
-This repository contains computational analysis code for three sequencing methods:
+This repository contains computational analysis code for four sequencing methods:
 
 ```
 Code_Paper_Li_etal/
 ├── distalseq/      # DISTAL-seq integration site analysis (R)
 ├── uniseq/         # Uni-seq analysis (R)
 ├── wgs/            # Whole-genome sequencing analysis (bash/Python)
+├── scrnaseq/       # Single-cell RNA-seq aneuploidy analysis (Python/Jupyter)
 └── metadata/       # Reference genome files go here (see metadata/README.md)
 ```
 
@@ -23,6 +24,7 @@ Code_Paper_Li_etal/
 - **DISTAL-seq** - Long-read sequencing for precise integration site mapping and vector characterization
 - **Uni-seq** - Short-read amplicon sequencing for quantitative integration site profiling  
 - **WGS** - Whole-genome sequencing for off-target analysis and copy number variation detection
+- **scRNA-seq** - Single-cell RNA sequencing for aneuploidy detection and karyotypic abnormality analysis
 
 Each directory contains analysis scripts used to generate results in the manuscript.
 
@@ -31,9 +33,10 @@ Each directory contains analysis scripts used to generate results in the manuscr
 ### Requirements
 
 - **R** (≥ 4.0) with packages: dplyr, ggplot2, ggrepel, pheatmap, openxlsx, reshape2, vegan
-- **Python** (≥ 3.8) with: pysam, pandas, boto3
+- **Python** (≥ 3.8) with: pysam, pandas, boto3, scanpy, infercnvpy, statsmodels
 - **Tools**: samtools, bedtools, mosdepth
 - **Reference**: hg38/GRCh38 genome
+- **For scRNA-seq**: Jupyter, scanpy, infercnvpy (see [scrnaseq/README.md](scrnaseq/README.md))
 
 ### Quick Start
 
@@ -64,6 +67,13 @@ Each directory contains analysis scripts used to generate results in the manuscr
    cd wgs
    # Update configuration in run_dragen_pipeline.sh
    bash run_dragen_pipeline.sh
+   ```
+
+   ```python
+   # scRNA-seq (see scrnaseq/README.md for detailed instructions)
+   cd scrnaseq
+   # Run notebooks in order: 01 -> 02 -> 03
+   jupyter notebook 01_prep_infercnv_from_counts.ipynb
    ```
 
 ## Data Availability
