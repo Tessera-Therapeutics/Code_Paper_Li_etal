@@ -3,7 +3,7 @@
 Analysis code supporting the manuscript:
 
 **"In vivo Gene Writing with engineered retrotransposons"**  
-Li et al., 2026  
+Li et al., 202X  
 *Link to publication to be added upon release.*
 
 ## Repository Contents
@@ -86,7 +86,7 @@ Each directory contains analysis scripts used to generate results in the manuscr
 If you use this code, please cite:
 
 ```
-Li et al. (2026). "In vivo Gene Writing with engineered retrotransposons."
+Li et al. (202X). "In vivo Gene Writing with engineered retrotransposons."
 [Journal]. DOI: [to be added]
 ```
 
