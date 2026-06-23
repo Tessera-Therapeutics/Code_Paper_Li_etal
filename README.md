@@ -1,4 +1,4 @@
-# Code for Li et al., 2026
+# Code for Li et al., 202X
 
 Analysis code supporting the manuscript:
 
