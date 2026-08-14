@@ -46,8 +46,8 @@ paper_barplot_colors <- data.frame("ppgray" = "#a4a4a4",
                                    "ppolivegreen" = "#9bbb56"
                                    )
 
-vector_rename <- data.frame("Vector" = c("CR1", "RTE1", "RTE3", "RTE25", "Vingi", "Lenti", "Random"),
-                            "ExtendedVector" = c("CR1-1_PH", "RTE-1_MD", "RTE-3_BF", "RTE-25_Lmi", "Vingi-1_Acar", "Lenti", "Random") )
+vector_rename <- data.frame("Vector" = c("CR1", "RTE3", "RTE25", "Vingi", "Lenti", "Random"),
+                            "ExtendedVector" = c("CR1-1_PH", "RTE-3_BF", "RTE-25_Lmi", "Vingi-1_Acar", "Lenti", "Random") )
 
 # Load utility functions
 source("uniseq_utils.R")
